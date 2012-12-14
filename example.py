@@ -1,5 +1,5 @@
 import numpy as np
-from pyPROPACK import svdp
+from pypropack import svdp
 
 # Create a random matrix
 A = np.random.random((10, 20)).astype(np.float64)

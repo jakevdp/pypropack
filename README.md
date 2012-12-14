@@ -21,14 +21,14 @@ To install, type
 
 To run the few unit tests that currently exist, type
 
-    nosetests pyPROPACK/tests
+    nosetests pypropack/tests
 
 
 Usage
 -----
 Currently very straightforward.  You can do
 
-    >>> from pyPROPACK import svdp
+    >>> from pypropack import svdp
     >>> import numpy as np   
     >>> A = np.random.random((10, 20))
     >>> u, s, vt = svdp(A, k=3)  # compute top k singular values
