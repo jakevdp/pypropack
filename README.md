@@ -28,10 +28,10 @@ Usage
 -----
 Currently very straightforward.  You can do
 
-  >>> from pyPROPACK import svdp
-  >>> import numpy as np   
-  >>> A = np.random.random((10, 20))
-  >>> u, s, vt = svdp(A, k=3)  # compute top k singular values
+    >>> from pyPROPACK import svdp
+    >>> import numpy as np   
+    >>> A = np.random.random((10, 20))
+    >>> u, s, vt = svdp(A, k=3)  # compute top k singular values
 
 The ``svdp`` documentation has more information.
 
@@ -46,9 +46,9 @@ http://soi.stanford.edu/~rmunk/PROPACK/
 For compatibility with gfortran, the files PROPACK/*/second.f were modified
 to change the line
 
-   REAL      ETIME
-   EXTERNAL  ETIME
+    REAL      ETIME
+    EXTERNAL  ETIME
 
 to
 
-   EXTERNAL REAL ETIME
+    EXTERNAL REAL ETIME
