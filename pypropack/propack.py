@@ -55,7 +55,7 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         number of singular values/vectors to compute
     kmax : int
         maximal number of iterations / maximal dimension of Krylov subspace.
-        default is 5 * k
+        default is 10 * k
     compute_u : bool
         if True (default) then compute left singular vectors u
     compute_v : bool
@@ -108,7 +108,7 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         jobv = 'n'
 
     if kmax is None:
-        kmax = 5 * k
+        kmax = 10 * k
 
     # these will be the output arrays
     u = np.zeros((m, kmax + 1), order='F', dtype=typ)

@@ -11,7 +11,7 @@ About
 This is an experimental python wrapper for the PROPACK package, which
 implements efficient singular value decompositions of large sparse matrices
 and linear operators.  If the performance of this module is satisfactory, it
-may be incorporated into Scipy at a later data
+may be incorporated into Scipy at a later date.
 
 Installation & Testing
 ----------------------
@@ -35,20 +35,23 @@ Currently very straightforward.  You can do
 
 The ``svdp`` documentation has more information.
 
+Benchmarks
+----------
+use the script ``plot_benchmarks.py`` for a comparison of PROPACK, ARPACK,
+SVDLIBC, and the standard LAPACK approaches to computing the svd.
+
 PROPACK modifications
 ---------------------
 PROPACK had to be slightly modified to play well with gfortran.
-This information is below.
-
 The PROPACK code used is version 2.1, downloaded from
 http://soi.stanford.edu/~rmunk/PROPACK/
 
-For compatibility with gfortran, the files PROPACK/*/second.f were modified
-to change the line
+For compatibility with gfortran, the files ``PROPACK/*/second.f``
+needed to be slightly modified.  The line
 
     REAL      ETIME
     EXTERNAL  ETIME
 
-to
+was changed to
 
     EXTERNAL REAL ETIME
