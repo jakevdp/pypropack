@@ -1,3 +1,17 @@
+"""pypropack: a Python wrapper for PROPACK
+
+PROPACK is a collection of Fortran routines for computing partial SVDs of
+large matrices or linear operators.
+"""
+# Author: Jake Vanderplas <vanderplas@astro.washington.edu>
+# License: BSD
+#
+# PROPACK source is BSD licensed, and available at
+#   http://soi.stanford.edu/~rmunk/PROPACK/
+#     
+# This python wrapper is BSD licensed, and available at
+#   http://github.com/jakevdp/pypropack
+
 import numpy as np
 import _spropack
 import _dpropack
@@ -26,11 +40,12 @@ class _AProd(object):
             self.A = aslinearoperator(np.asarray(A))
 
     def __call__(self, transa, m, n, x, y, sparm, iparm):
-        if transa.lower() == 'n':
-            y[:m] = self.A.matvec(x[:n])
+        print transa, m, n, x.shape, y.shape
+        if transa == 'n':
+            y[:] = self.A.matvec(x)
         else:
-            y[:n] = self.A.rmatvec(x[:m])
-    
+            y[:] = self.A.rmatvec(x)
+
     @property
     def shape(self):
         return self.A.shape

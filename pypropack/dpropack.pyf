@@ -6,8 +6,8 @@ python module __user__routines
            character*1 :: transa
            integer intent(in) :: m
 	   integer intent(in) :: n
-           double precision intent(in,out),dimension(max(m,n)) :: x
-	   double precision intent(in,out),dimension(max(m,n)) :: y
+           double precision depend(m,n),check(len(x)>=(transa[0] == 'n' ? n : m)),dimension((transa[0] == 'n' ? n : m)) :: x
+	   double precision depend(m,n),check(len(y)>=(transa[0] == 'n' ? m : n)),intent(overwrite),dimension((transa[0] == 'n' ? m : n)) :: y
 	   integer dimension(*) :: iparm
 	   double precision dimension(*) :: dparm
         end function saprod

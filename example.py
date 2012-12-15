@@ -1,11 +1,15 @@
 import numpy as np
 from pypropack import svdp
 
+from scipy.sparse import csr_matrix
+
+np.random.seed(0)
+
 # Create a random matrix
-A = np.random.random((10, 20)).astype(np.float64)
+A = np.random.random((10, 20))
 
 # compute SVD via propack and lapack
-u, sigma, v = svdp(A, 3)
+u, sigma, v = svdp(csr_matrix(A), 3)
 u1, sigma1, v1 = np.linalg.svd(A, full_matrices=False)
 
 # print the results

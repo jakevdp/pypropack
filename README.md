@@ -1,21 +1,22 @@
 A Python Wrapper for PROPACK
 ============================
-Author: Jake Vanderplas <vanderplas@astro.washington.edu>
-License: BSD
+
+- Author: Jake Vanderplas <vanderplas@astro.washington.edu>
+- License: BSD
+
+About
+-----
+This is a Python wrapper for the PROPACK package, which implements
+efficient partial singular value decompositions of large sparse matrices
+and linear operators.  The package is meant to stand alone, but may be
+included in Scipy at a later date.
 
 **This is a work in progress: not all routines are currently wrapped, and
   the code should be considered unsupported**
 
-About
------
-This is an experimental python wrapper for the PROPACK package, which
-implements efficient singular value decompositions of large sparse matrices
-and linear operators.  If the performance of this module is satisfactory, it
-may be incorporated into Scipy at a later date.
-
 Installation & Testing
 ----------------------
-To install, type
+To install in-place, type
 
     python setup.py build_ext --inplace
 

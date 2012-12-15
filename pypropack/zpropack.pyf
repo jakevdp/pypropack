@@ -6,8 +6,8 @@ python module __user__routines
            character*1 :: transa
            integer intent(in) :: m
 	   integer intent(in) :: n
-           complex*16 intent(in,out),dimension(max(m,n)) :: x
-	   complex*16 intent(in,out),dimension(max(m,n)) :: y
+           complex*16 intent(in),dimension((transa[0] == 'n' ? n : m)) :: x
+	   complex*16 intent(in,out),dimension((transa[0] == 'n' ? m : n)) :: y
 	   integer dimension(*) :: iparm
 	   complex*16 dimension(*) :: zparm
         end function caprod
