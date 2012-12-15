@@ -1,6 +1,6 @@
 *.pyc
 *~
 *.so
-pyPROPACK/_*.c
-pyPROPACK/_*.f
+pypropack/_*.c
+pypropack/_*.f
 build
