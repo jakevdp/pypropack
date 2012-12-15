@@ -40,7 +40,6 @@ class _AProd(object):
             self.A = aslinearoperator(np.asarray(A))
 
     def __call__(self, transa, m, n, x, y, sparm, iparm):
-        print transa, m, n, x.shape, y.shape
         if transa == 'n':
             y[:] = self.A.matvec(x)
         else:
