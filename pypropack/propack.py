@@ -15,6 +15,8 @@ large matrices or linear operators.
 import numpy as np
 import _spropack
 import _dpropack
+import _cpropack
+import _zpropack
 
 from scipy.sparse.linalg import aslinearoperator
 
@@ -22,9 +24,13 @@ from scipy.sparse.linalg import aslinearoperator
 _type_conv = {'f': 's', 'd': 'd', 'F': 'c', 'D': 'z'}
 _ndigits = {'f': 5, 'd': 12, 'F': 5, 'D': 12}
 _lansvd_dict = {'f': _spropack.slansvd,
-                'd': _dpropack.dlansvd}
+                'd': _dpropack.dlansvd,
+                'F': _cpropack.clansvd,
+                'D': _zpropack.zlansvd}
 _lansvd_irl_dict = {'f': _spropack.slansvd_irl,
-                    'd': _dpropack.dlansvd_irl}
+                    'd': _dpropack.dlansvd_irl,
+                    'F': _cpropack.clansvd_irl,
+                    'D': _zpropack.zlansvd_irl}
 
 
 class _AProd(object):
@@ -129,9 +135,10 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     v = np.zeros((n, kmax), order='F', dtype=typ)
 
     # options for the fit
-    # TODO: explain these and make these parameters adjustable
+    # TODO: document these options and make these parameters adjustable
+    #       via keyword arguments to svdp()
     ioption = np.zeros(2, dtype='i')
-    ioption[0] = 0  # controls Gram-Schmidt procedure
+    ioption[0] = 0  # controls Gram-Schmidt reorthogonalization
     ioption[1] = 1  # controls re-orthonormalization
 
     eps = 2 * np.finfo(typ).eps
@@ -141,14 +148,17 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     doption[2] = 0.0          # estimate of ||A||
 
     # TODO: choose lwork based on inputs (see propack documentation)
+    # this is the size needed if compute_u and compute_v are both True
+    nb = 3 # number of blocks
     lwork = (m + n
              + 9 * kmax
-             + 5 * kmax * kmax
+             + 5 * kmax * kmax + 4
              + max(3 * kmax **2 + 4 * kmax + 4,
-                   3 * max(m, n)))
+                   nb * max(m, n)))
     work = np.zeros(lwork, dtype='f')
 
     # TODO: choose liwork based on inputs (see propack documentation)
+    # this is the size needed if compute_u and compute_v are both True
     liwork = 8 * kmax
     iwork = np.zeros(liwork, dtype='i')
     
@@ -156,9 +166,23 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     dparm = np.zeros(1, dtype='f')
     iparm = np.zeros(1, dtype='i')
 
-    u, sigma, bnd, v, work, iwork, info =\
-        _lansvd_dict[typ](jobu, jobv, m, n, k, aprod, u, v, tol,
-                          work, iwork, doption, ioption, dparm, iparm)
+    if typ in ['F', 'D']:
+        cwork = np.zeros(lwork, dtype=typ)
+        u, sigma, bnd, v, info = _lansvd_dict[typ](jobu, jobv, m, n, k,
+                                                   aprod, u, v, tol,
+                                                   work, cwork, iwork,
+                                                   doption, ioption, dparm,
+                                                   iparm)
+    else:
+        u, sigma, bnd, v, info = _lansvd_dict[typ](jobu, jobv, m, n, k,
+                                                   aprod, u, v, tol,
+                                                   work, iwork,
+                                                   doption, ioption, dparm,
+                                                   iparm)
+
+    # TODO: give keyword options to return information in the following:
+    #    bnd - error on singular values
+    #    info - integer flag with information about convergence
 
     # construct return tuple
     ret = ()
@@ -166,6 +190,6 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         ret = ret + (u[:, :k],)
     ret = ret + (sigma,)
     if compute_v:
-        ret = ret + (v[:, :k].T,)
+        ret = ret + (v[:, :k].conj().T,)
 
     return ret

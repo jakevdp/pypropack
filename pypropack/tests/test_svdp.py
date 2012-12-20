@@ -6,26 +6,33 @@ from scipy.sparse import csr_matrix, csc_matrix
 
 CONSTRUCTORS = [np.array, csr_matrix, csc_matrix]
 
-DTYPES = ['f', 'd']
+DTYPES = ['f', 'd', 'F', 'D']
 
 RTOLS = {'f':1E-5,
-         'd':1E-10}
+         'd':1E-10,
+         'F':1E-5,
+         'D':1E-10}
 
 ATOLS = {'f':1E-5,
-         'd':1E-10}
+         'd':1E-10,
+         'F':1E-5,
+         'D':1E-10}
 
 
 def generate_sparse_matrix(constructor, n, m, f,
                            dtype=float, rseed=0, **kwargs):
     rng = np.random.RandomState(rseed)
-    M = rng.rand(n, m).astype(dtype)
-    M[M > f] = 0
+    if issubclass(np.dtype(dtype).type, np.complex):
+        M = (rng.rand(n, m) + 1j * rng.rand(n, m)).astype(dtype)
+    else:
+        M = rng.rand(n, m).astype(dtype)
+    M[M.real > f] = 0
     return constructor(M, **kwargs)
 
 
 def assert_orthogonal(u1, u2, k, rtol, atol):
     """Check that the first k rows of u1 and u2 are orthogonal"""
-    I = abs(np.dot(u1[:, :k].T, u2[:, :k]))
+    I = abs(np.dot(u1[:, :k].conj().T, u2[:, :k]))
     assert_allclose(I, np.eye(k), rtol, atol)
 
 
@@ -39,11 +46,11 @@ def check_svdp(n, m, constructor, dtype, k, f=0.6, **kwargs):
     u1, sigma1, v1 = np.linalg.svd(M, full_matrices=False)
     u2, sigma2, v2 = svdp(Msp, k=k, tol=rtol)
 
-    # make sure singular vectors are orthogonal
+    # check that singular vectors are orthogonal
     assert_orthogonal(u1, u2, k, rtol, atol)
     assert_orthogonal(v1.T, v2.T, k, rtol, atol)
 
-    # make sure singular values agree
+    # check that singular values agree
     assert_allclose(sigma1[:k], sigma2, rtol, atol)
 
 

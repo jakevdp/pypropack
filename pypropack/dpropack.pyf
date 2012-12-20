@@ -7,7 +7,7 @@ python module __user__routines
            integer intent(in) :: m
 	   integer intent(in) :: n
            double precision depend(m,n),check(len(x)>=(transa[0] == 'n' ? n : m)),dimension((transa[0] == 'n' ? n : m)) :: x
-	   double precision depend(m,n),check(len(y)>=(transa[0] == 'n' ? m : n)),intent(overwrite),dimension((transa[0] == 'n' ? m : n)) :: y
+	   double precision depend(m,n),check(len(y)>=(transa[0] == 'n' ? m : n)),dimension((transa[0] == 'n' ? m : n)) :: y
 	   integer dimension(*) :: iparm
 	   double precision dimension(*) :: dparm
         end function saprod
@@ -33,9 +33,9 @@ python module _dpropack ! in
             double precision intent(in,out),dimension(ldv,kmax) :: v
             integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
             double precision intent(in) :: tolin
-            double precision intent(in,out),dimension(lwork) :: work
+            double precision intent(in),dimension(lwork) :: work
             integer optional,check(len(work)>=lwork),depend(work) :: lwork=len(work)
-            integer intent(in,out),dimension(liwork) :: iwork
+            integer intent(in),dimension(liwork) :: iwork
             integer optional,check(len(iwork)>=liwork),depend(iwork) :: liwork=len(iwork)
             double precision intent(in),dimension(3) :: doption
             integer intent(in),dimension(2) :: ioption
