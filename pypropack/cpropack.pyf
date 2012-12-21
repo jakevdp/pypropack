@@ -75,34 +75,34 @@ python module _cpropack ! in
 
         subroutine clansvd_irl(which,jobu,jobv,m,n,dim,p,neig,maxiter,aprod,u,ldu,sigma,bnd,v,ldv,tolin,work,lwork,cwork,lcwrk,iwork,liwork,soption,ioption,info,cparm,iparm) ! in :_cpropack:PROPACK/complex8/clansvd_irl.F
             use __user__routines, aprod=>caprod
-            character*1 :: which
-            character*1 :: jobu
-            character*1 :: jobv
-            integer :: m
-            integer :: n
-            integer :: dim
-            integer :: p
-            integer :: neig
-            integer :: maxiter
+            character*1 intent(in) :: which
+            character*1 intent(in) :: jobu
+            character*1 intent(in) :: jobv
+            integer intent(in) :: m
+            integer intent(in) :: n
+            integer intent(in) :: dim
+            integer intent(in) :: p
+            integer intent(in) :: neig
+            integer intent(in) :: maxiter
             external aprod
-            complex dimension(ldu,*) :: u
-            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
-            real dimension(*) :: sigma
-            real dimension(*) :: bnd
-            complex dimension(ldv,*) :: v
-            integer, optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
-            real :: tolin
-            real dimension(lwork) :: work
-            integer, optional,check(len(work)>=lwork),depend(work) :: lwork=len(work)
-            complex dimension(lcwrk) :: cwork
-            integer, optional,check(len(cwork)>=lcwrk),depend(cwork) :: lcwrk=len(cwork)
-            integer dimension(liwork) :: iwork
-            integer, optional,check(len(iwork)>=liwork),depend(iwork) :: liwork=len(iwork)
-            real dimension(*) :: soption
-            integer dimension(*) :: ioption
-            integer :: info
-            complex dimension(*) :: cparm
-            integer dimension(*) :: iparm
+            complex intent(in,out),dimension(ldu,dim+1) :: u
+            integer optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+            real intent(out),dimension(neig) :: sigma
+            real intent(out),dimension(neig) :: bnd
+            complex intent(in,out),dimension(ldv,dim) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            real intent(in) :: tolin
+            real intent(in),dimension(lwork) :: work
+            integer optional,check(len(work)>=lwork),depend(work) :: lwork=len(work)
+            complex intent(in),dimension(lcwrk) :: cwork
+            integer optional,check(len(cwork)>=lcwrk),depend(cwork) :: lcwrk=len(cwork)
+            integer intent(in),dimension(liwork) :: iwork
+            integer optional,check(len(iwork)>=liwork),depend(iwork) :: liwork=len(iwork)
+            real intent(in),dimension(4) :: soption
+            integer intent(in),dimension(2) :: ioption
+            integer intent(out) :: info
+            complex intent(in),dimension(*) :: cparm
+            integer intent(in),dimension(*) :: iparm
             integer :: nopx
             integer :: nreorth
             integer :: ndot
