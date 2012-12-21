@@ -74,32 +74,32 @@ python module _dpropack ! in
 
         subroutine dlansvd_irl(which,jobu,jobv,m,n,dim,p,neig,maxiter,aprod,u,ldu,sigma,bnd,v,ldv,tolin,work,lwork,iwork,liwork,doption,ioption,info,dparm,iparm) ! in :_dpropack:PROPACK/double/dlansvd_irl.F
             use __user__routines, aprod=>daprod
-            character*1 :: which
-            character*1 :: jobu
-            character*1 :: jobv
-            integer :: m
-            integer :: n
-            integer :: dim
-            integer :: p
-            integer :: neig
-            integer :: maxiter
+            character*1 intent(in) :: which
+            character*1 intent(in) :: jobu
+            character*1 intent(in) :: jobv
+            integer intent(in) :: m
+            integer intent(in) :: n
+            integer intent(in) :: dim
+            integer intent(in) :: p
+            integer intent(in) :: neig
+            integer intent(in) :: maxiter
             external aprod
-            double precision dimension(ldu,*) :: u
-            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
-            double precision dimension(*) :: sigma
-            double precision dimension(*) :: bnd
-            double precision dimension(ldv,*) :: v
-            integer, optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
-            double precision :: tolin
-            double precision dimension(lwork) :: work
-            integer, optional,check(len(work)>=lwork),depend(work) :: lwork=len(work)
-            integer dimension(liwork) :: iwork
-            integer, optional,check(len(iwork)>=liwork),depend(iwork) :: liwork=len(iwork)
-            double precision dimension(*) :: doption
-            integer dimension(*) :: ioption
-            integer :: info
-            double precision dimension(*) :: dparm
-            integer dimension(*) :: iparm
+            double precision intent(in,out),dimension(ldu,dim+1) :: u
+            integer optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+            double precision intent(out),dimension(neig) :: sigma
+            double precision intent(out),dimension(neig) :: bnd
+            double precision intent(in,out),dimension(ldv,dim) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            double precision intent(in) :: tolin
+            double precision intent(in),dimension(lwork) :: work
+            integer optional,check(len(work)>=lwork),depend(work) :: lwork=len(work)
+            integer intent(in),dimension(liwork) :: iwork
+            integer optional,check(len(iwork)>=liwork),depend(iwork) :: liwork=len(iwork)
+            double precision intent(in),dimension(4) :: doption
+            integer intent(in),dimension(2) :: ioption
+            integer intent(out) :: info
+            double precision intent(in),dimension(*) :: dparm
+            integer intent(in),dimension(*) :: iparm
             integer :: nopx
             integer :: nreorth
             integer :: ndot

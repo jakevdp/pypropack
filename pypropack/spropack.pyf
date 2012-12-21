@@ -87,9 +87,9 @@ python module _spropack ! in
             external aprod
             real intent(in,out),dimension(ldu,dim+1) :: u
             integer optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
-            real intent(out),dimension(dim) :: sigma
-            real intent(out),dimension(dim) :: bnd
-            real intent(out),dimension(ldv,dim) :: v
+            real intent(out),dimension(neig) :: sigma
+            real intent(out),dimension(neig) :: bnd
+            real intent(in,out),dimension(ldv,dim) :: v
             integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
             real intent(in) :: tolin
             real intent(in),dimension(lwork) :: work
