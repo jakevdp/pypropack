@@ -10,25 +10,25 @@ of partial SVDs of large matrices or linear operators.
 #
 # PROPACK source is BSD licensed, and available at
 #   http://soi.stanford.edu/~rmunk/PROPACK/
-#     
+#
 # This python wrapper is BSD licensed, and available at
 #   http://github.com/jakevdp/pypropack
 
+__all__ = ['svdp', 'svdp_irl']
+
 import numpy as np
+from scipy.sparse.linalg import aslinearoperator
+
 import _spropack
 import _dpropack
 import _cpropack
 import _zpropack
 
-from scipy.sparse.linalg import aslinearoperator
-
-
-_type_conv = {'f': 's', 'd': 'd', 'F': 'c', 'D': 'z'}
-_ndigits = {'f': 5, 'd': 12, 'F': 5, 'D': 12}
 _lansvd_dict = {'f': _spropack.slansvd,
                 'd': _dpropack.dlansvd,
                 'F': _cpropack.clansvd,
                 'D': _zpropack.zlansvd}
+
 _lansvd_irl_dict = {'f': _spropack.slansvd_irl,
                     'd': _dpropack.dlansvd_irl,
                     'F': _cpropack.clansvd_irl,
@@ -61,12 +61,13 @@ class _AProd(object):
     def dtype(self):
         try:
             return self.A.dtype
-        except:
+        except AttributeError:
             return A.matvec(np.zeros(A.shape[1])).dtype
 
 
-def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
-    """Compute the svd of A using PROPACK
+def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True,
+         tol=0, v0=None, full_output=False):
+    """Compute the singular value decomposition of A using PROPACK
 
     Parameters
     ----------
@@ -82,17 +83,34 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         if True (default) then compute left singular vectors u
     compute_v : bool
         if True (default) then compute right singular vectors v
-    tol : float
-        desired relative accuracy for computed singular values
+    tol : float (optional)
+        The desired relative accuracy for computed singular values.
+        If not specified, it will be set based on machine precision.
+    v0 : starting vector (optional)
+        Starting vector for iterations: should be of length A.shape[0].
+        If not specified, PROPACK will generate a starting vector.
+    full_output : boolean
+        If True, then return info and sigma_bound.  Default is False
 
     Returns
     -------
     u : ndarray
-        the top k left singular vectors, shape = (A.shape[0], 3)
+        The top k left singular vectors, shape = (A.shape[0], 3),
+        returned only if compute_u is True.
     sigma : ndarray
-        the top k singular values, shape = (k,)
+        The top k singular values, shape = (k,)
     vt : ndarray
-        the top k right singular vectors, shape = (3, A.shape[1])
+        The top k right singular vectors, shape = (3, A.shape[1]),
+        returned only if compute_v is True.
+    info : integer
+        convergence info, returned only if full_output is True
+        - INFO = 0  : The K largest singular triplets were computed succesfully
+        - INFO = J>0, J<K: An invariant subspace of dimension J was found.
+        - INFO = -1 : K singular triplets did not converge within KMAX
+                     iterations.   
+    sigma_bound : ndarray
+        the error bounds on the singular values sigma, returned only if
+        full_output is True
 
     Examples
     --------
@@ -133,11 +151,16 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         kmax = 10 * k
 
     # these will be the output arrays
-    # TODO: the first column of u is the starting vector.  If all zero, then
-    # this will be randomly initialized within propack.  For repeatibility,
-    # we should always initialize it using numpy.random().
     u = np.zeros((m, kmax + 1), order='F', dtype=typ)
     v = np.zeros((n, kmax), order='F', dtype=typ)
+
+    # specify the starting vector.  If all zero, then it will be generated
+    # automatically by PROPACK
+    if v0 is not None:
+        try:
+            u[:, 0] = v0
+        except:
+            raise ValueError("v0 must be of length %i" % m)
 
     # options for the fit
     # TODO: document these options and make these parameters adjustable
@@ -147,18 +170,18 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     ioption[1] = 1  # controls re-orthonormalization
 
     eps = 2 * np.finfo(typ).eps
-    doption = np.zeros(3, dtype='f')
-    doption[0] = eps ** 0.5   # level of orthogonality to maintain
-    doption[1] = eps ** 0.75  # purge vectors larger than this
-    doption[2] = 0.0          # estimate of ||A||
+    dsoption = np.zeros(3, dtype=typ.lower())
+    dsoption[0] = eps ** 0.5   # level of orthogonality to maintain
+    dsoption[1] = eps ** 0.75  # purge vectors larger than this
+    dsoption[2] = 0.0          # estimate of ||A||
 
     # TODO: choose lwork based on inputs (see propack documentation)
     # this is the size needed if compute_u and compute_v are both True
-    nb = 3 # number of blocks
+    nb = 3  # number of blocks
     lwork = (m + n
              + 9 * kmax
              + 5 * kmax * kmax + 4
-             + max(3 * kmax **2 + 4 * kmax + 4,
+             + max(3 * kmax ** 2 + 4 * kmax + 4,
                    nb * max(m, n)))
     work = np.zeros(lwork, dtype='f')
 
@@ -166,7 +189,7 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     # this is the size needed if compute_u and compute_v are both True
     liwork = 8 * kmax
     iwork = np.zeros(liwork, dtype='i')
-    
+
     # dummy arguments: these are passed to aprod, and not used
     dparm = np.zeros(1, dtype='f')
     iparm = np.zeros(1, dtype='i')
@@ -175,15 +198,11 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
         cwork = np.zeros(lwork, dtype=typ)
         u, sigma, bnd, v, info = lansvd(jobu, jobv, m, n, k,
                                         aprod, u, v, tol, work, cwork, iwork,
-                                        doption, ioption, dparm, iparm)
+                                        dsoption, ioption, dparm, iparm)
     else:
         u, sigma, bnd, v, info = lansvd(jobu, jobv, m, n, k,
                                         aprod, u, v, tol, work, iwork,
-                                        doption, ioption, dparm, iparm)
-
-    # TODO: give keyword options to return information in the following:
-    #    bnd - error on singular values
-    #    info - integer flag with information about convergence
+                                        dsoption, ioption, dparm, iparm)
 
     # construct return tuple
     ret = ()
@@ -193,11 +212,15 @@ def svdp(A, k=3, kmax=None, compute_u=True, compute_v=True, tol=1E-5):
     if compute_v:
         ret = ret + (v[:, :k].conj().T,)
 
+    if full_output:
+        ret = ret + (info, bnd)
+
     return ret
 
 
 def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
-             compute_u=True, compute_v=True, tol=1E-5):
+             compute_u=True, compute_v=True, tol=0, v0=None,
+             full_output=False):
     """Compute the svd of A using PROPACK
 
     svd_irl uses the iteratively restarted Lanczos algorithm
@@ -224,8 +247,14 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
         if True (default) then compute left singular vectors u
     compute_v : bool
         if True (default) then compute right singular vectors v
-    tol : float
-        desired relative accuracy for computed singular values
+    tol : float (optional)
+        The desired relative accuracy for computed singular values.
+        If not specified, it will be set based on machine precision.
+    v0 : starting vector (optional)
+        Starting vector for iterations: should be of length A.shape[0].
+        If not specified, PROPACK will generate a starting vector.
+    full_output : boolean
+        If True, then return info and sigma_bound.  Default is False
 
     Returns
     -------
@@ -235,6 +264,15 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
         the top k singular values, shape = (k,)
     vt : ndarray
         the top k right singular vectors, shape = (3, A.shape[1])
+    info : integer
+        convergence info, returned only if full_output is True
+        - INFO = 0  : The K largest singular triplets were computed succesfully
+        - INFO = J>0, J<K: An invariant subspace of dimension J was found.
+        - INFO = -1 : K singular triplets did not converge within KMAX
+                     iterations.   
+    sigma_bound : ndarray
+        the error bounds on the singular values sigma, returned only if
+        full_output is True
 
     Examples
     --------
@@ -287,11 +325,16 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
         kmax = 10 * k
 
     # these will be the output arrays
-    # TODO: the first column of u is the starting vector.  If all zero, then
-    # this will be randomly initialized within propack.  For repeatibility,
-    # we should always initialize it using numpy.random().
     u = np.zeros((m, kmax + 1), order='F', dtype=typ)
     v = np.zeros((n, kmax), order='F', dtype=typ)
+
+    # specify the starting vector.  If all zero, then it will be generated
+    # automatically by PROPACK
+    if v0 is not None:
+        try:
+            u[:, 0] = v0
+        except:
+            raise ValueError("v0 must be of length %i" % m)
 
     # options for the fit
     # TODO: document these options and make these parameters adjustable
@@ -301,19 +344,19 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
     ioption[1] = 1  # controls re-orthonormalization
 
     eps = 2 * np.finfo(typ).eps
-    doption = np.zeros(4, dtype=typ.lower())
-    doption[0] = eps ** 0.5   # level of orthogonality to maintain
-    doption[1] = eps ** 0.75  # purge vectors larger than this
-    doption[2] = 0.0          # estimate of ||A||
-    doption[3] = 0.002
+    dsoption = np.zeros(4, dtype=typ.lower())
+    dsoption[0] = eps ** 0.5   # level of orthogonality to maintain
+    dsoption[1] = eps ** 0.75  # purge vectors larger than this
+    dsoption[2] = 0.0          # estimate of ||A||
+    dsoption[3] = 0.002
 
     # TODO: choose lwork based on inputs (see propack documentation)
     # this is the size needed if compute_u and compute_v are both True
-    nb = 3 # number of blocks
+    nb = 3  # number of blocks
     lwork = (m + n
              + 9 * kmax
              + 5 * kmax * kmax + 4
-             + max(3 * kmax **2 + 4 * kmax + 4,
+             + max(3 * kmax ** 2 + 4 * kmax + 4,
                    nb * max(m, n)))
     work = np.zeros(lwork, dtype='f')
 
@@ -321,7 +364,7 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
     # this is the size needed if compute_u and compute_v are both True
     liwork = 8 * kmax
     iwork = np.zeros(liwork, dtype='i')
-    
+
     # dummy arguments: these are passed to aprod, and not used
     dparm = np.zeros(1, dtype=typ.lower())
     iparm = np.zeros(1, dtype='i')
@@ -332,16 +375,12 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
         u, sigma, bnd, v, info = lansvd_irl(which, jobu, jobv, m, n,
                                             shifts, k, maxiter, aprod,
                                             u, v, tol, work, cwork, iwork,
-                                            doption, ioption, dparm, iparm)
+                                            dsoption, ioption, dparm, iparm)
     else:
         u, sigma, bnd, v, info = lansvd_irl(which, jobu, jobv, m, n,
                                             shifts, k, maxiter, aprod,
                                             u, v, tol, work, iwork,
-                                            doption, ioption, dparm, iparm)
-
-    # TODO: give keyword options to return information in the following:
-    #    bnd - error on singular values
-    #    info - integer flag with information about convergence
+                                            dsoption, ioption, dparm, iparm)
 
     # construct return tuple
     ret = ()
@@ -350,5 +389,8 @@ def svdp_irl(A, k=3, which='L', kmax=None, shifts=3, maxiter=10,
     ret = ret + (sigma,)
     if compute_v:
         ret = ret + (v[:, :k].conj().T,)
+
+    if full_output:
+        ret = ret + (info, bnd)
 
     return ret

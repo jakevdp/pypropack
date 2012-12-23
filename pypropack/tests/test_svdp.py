@@ -51,7 +51,7 @@ def check_svdp(n, m, constructor, dtype, k, f=0.6, **kwargs):
     Msp = CONSTRUCTORS[constructor](M)
 
     u1, sigma1, v1 = np.linalg.svd(M, full_matrices=False)
-    u2, sigma2, v2 = svdp(Msp, k=k, tol=rtol)
+    u2, sigma2, v2 = svdp(Msp, k=k)
 
     # check that singular values agree
     assert_allclose(sigma1[:k], sigma2, rtol, atol)
@@ -61,7 +61,7 @@ def check_svdp(n, m, constructor, dtype, k, f=0.6, **kwargs):
     assert_orthogonal(v1.T, v2.T, rtol, atol)
 
 
-def test_svdp(n=20, m=10):
+def test_svdp(n=10, m=20):
     k = 5
     for constructor in CONSTRUCTORS:
         for dtype in DTYPES:
@@ -76,7 +76,7 @@ def check_svdp_irl(n, m, constructor, dtype, k, which, f=0.6, **kwargs):
     Msp = CONSTRUCTORS[constructor](M)
 
     u1, sigma1, vt1 = np.linalg.svd(M, full_matrices=False)
-    u2, sigma2, vt2 = svdp_irl(Msp, k=k, tol=rtol, which=which)
+    u2, sigma2, vt2 = svdp_irl(Msp, k=k, which=which)
 
     if which.upper() == 'S':
         u1 = np.roll(u1, k, 1)
@@ -97,7 +97,7 @@ def check_svdp_irl(n, m, constructor, dtype, k, which, f=0.6, **kwargs):
     assert_orthogonal(vt1.T, vt2.T, rtol, atol)
 
 
-def test_svdp_irl(n=20, m=10):
+def test_svdp_irl(n=10, m=20):
     k = 5
     for constructor in CONSTRUCTORS:
         for dtype in DTYPES:
