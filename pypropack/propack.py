@@ -66,7 +66,7 @@ class _AProd(object):
         try:
             return self.A.dtype
         except AttributeError:
-            return A.matvec(np.zeros(A.shape[1])).dtype
+            return self.A.matvec(np.zeros(self.A.shape[1])).dtype
 
 
 def svdp(A, k, which='L', irl_mode=False, kmax=None,
