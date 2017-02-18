@@ -1,6 +1,9 @@
 A Python Wrapper for PROPACK
 ============================
 
+**This wrapper is incomplete, buggy, unsupported, and does questionable
+  things with memory pointers. Use it at your own risk.**
+
 - Author: Jake Vanderplas <vanderplas@astro.washington.edu>
 - License: BSD
 
@@ -11,8 +14,6 @@ efficient partial singular value decompositions of large sparse matrices
 and linear operators.  The package is meant to stand alone, but may be
 included in Scipy at a later date.
 
-**This is a work in progress: not all routines are currently wrapped, and
-  the code should be considered unsupported**
 
 Installation & Testing
 ----------------------
