@@ -21,10 +21,10 @@ import warnings
 import numpy as np
 from scipy.sparse.linalg import aslinearoperator
 
-import _spropack
-import _dpropack
-import _cpropack
-import _zpropack
+from . import _spropack
+from . import _dpropack
+from . import _cpropack
+from . import _zpropack
 
 
 _lansvd_dict = {'f': _spropack.slansvd,
