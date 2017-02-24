@@ -9,7 +9,7 @@ CONSTRUCTORS = {'array':np.array,
                 'csc_matrix':csc_matrix}
 
 DTYPES = ['f', 'd',  # real types
-          'F', 'D',  # complex types
+#          'F', 'D',  # complex types
           'i', 'l',  # integer types
           ]
 
